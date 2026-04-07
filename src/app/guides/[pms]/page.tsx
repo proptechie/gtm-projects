@@ -767,90 +767,97 @@ console.error("Opera Cloud MCP server running on stdio");`,
     claudePrompt: "I operate a hotel chain running Oracle Opera Cloud. How can enterprise AI tools like Conduit help us standardize operations across properties, automate guest communications at scale, and integrate AI into our existing Oracle ecosystem? What ROI should we expect?",
   },
 
-  muse: {
-    name: "Maestro",
-    color: "#8B5CF6",
-    logo: "M",
-    apiDocsUrl: "https://www.maestropms.com/integration",
+  streamline: {
+    name: "Streamline",
+    color: "#2B7A78",
+    logo: "S",
+    apiDocsUrl: "https://developer.streamlinevrs.com",
     authMethod: "API Key",
-    difficulty: "Medium",
-    description: "Maestro PMS is a leading independent hotel management system. Their Web API provides access to reservations, guest profiles, and operations. API access is available to Maestro customers and certified partners.",
+    difficulty: "Easy",
+    description: "Streamline is a leading vacation rental software platform. Their API provides access to reservations, properties, guests, and operations. Well-documented with straightforward API key authentication.",
     getCredentials: [
-      "Contact your Maestro account representative to request API access",
-      "You may need to be on a qualifying plan or sign a developer agreement",
-      "Once approved, you'll receive an API key and endpoint URL",
-      "Maestro provides a test environment for development",
+      "Log in to your Streamline dashboard",
+      "Go to Settings > API & Integrations",
+      "Generate an API key",
+      "Note your company ID from the dashboard",
     ],
     envVars: [
-      { key: "MAESTRO_API_KEY", desc: "Your Maestro API key" },
-      { key: "MAESTRO_API_URL", desc: "Your Maestro API endpoint URL" },
-      { key: "MAESTRO_PROPERTY_ID", desc: "Your Maestro property ID" },
+      { key: "STREAMLINE_API_KEY", desc: "Your Streamline API key" },
+      { key: "STREAMLINE_COMPANY_ID", desc: "Your Streamline company ID" },
     ],
     mcpServerCode: `import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const server = new McpServer({ name: "maestro-mcp", version: "1.0.0" });
+const server = new McpServer({ name: "streamline-mcp", version: "1.0.0" });
 
-const API_KEY = process.env.MAESTRO_API_KEY!;
-const PROPERTY_ID = process.env.MAESTRO_PROPERTY_ID!;
+const API_KEY = process.env.STREAMLINE_API_KEY!;
+const COMPANY_ID = process.env.STREAMLINE_COMPANY_ID!;
 
-async function museFetch(path: string) {
-  const res = await fetch(\`https://api.maestropms.com/v1\${path}\`, {
-    headers: {
-      "Authorization": \`Bearer \${API_KEY}\`,
-      "X-Property-Id": PROPERTY_ID,
-      "Content-Type": "application/json",
-    },
-  });
+async function streamlineFetch(method: string, params: Record<string, string> = {}) {
+  const url = new URL("https://api.streamlinevrs.com/api/json");
+  url.searchParams.set("key", API_KEY);
+  url.searchParams.set("company_id", COMPANY_ID);
+  url.searchParams.set("method", method);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
   return res.json();
 }
 
 server.tool("list-reservations", "List reservations", {
-  status: z.string().optional().describe("Filter by status"),
-}, async ({ status }) => {
-  const params = status ? \`?status=\${status}\` : "";
-  const data = await museFetch(\`/reservations\${params}\`);
+  startDate: z.string().optional().describe("Start date (YYYY-MM-DD)"),
+  endDate: z.string().optional().describe("End date (YYYY-MM-DD)"),
+}, async ({ startDate, endDate }) => {
+  const params: Record<string, string> = {};
+  if (startDate) params.start_date = startDate;
+  if (endDate) params.end_date = endDate;
+  const data = await streamlineFetch("GetReservations", params);
   return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
 });
 
-server.tool("list-rooms", "List rooms", {}, async () => {
-  const data = await museFetch("/rooms");
+server.tool("list-units", "List all rental units/properties", {}, async () => {
+  const data = await streamlineFetch("GetUnits");
   return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
 });
 
-server.tool("list-guests", "List guests", {}, async () => {
-  const data = await museFetch("/guests");
+server.tool("get-availability", "Check availability for a unit", {
+  unitId: z.string().describe("Unit ID"),
+  startDate: z.string().describe("Start date (YYYY-MM-DD)"),
+  endDate: z.string().describe("End date (YYYY-MM-DD)"),
+}, async ({ unitId, startDate, endDate }) => {
+  const data = await streamlineFetch("GetAvailability", { unit_id: unitId, start_date: startDate, end_date: endDate });
   return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
 });
 
 const transport = new StdioServerTransport();
 server.connect(transport);
-console.error("Muse MCP server running on stdio");`,
+console.error("Streamline MCP server running on stdio");`,
     claudeConfig: `{
   "mcpServers": {
-    "muse": {
+    "streamline": {
       "command": "node",
-      "args": ["path/to/maestro-mcp/index.js"],
+      "args": ["path/to/streamline-mcp/index.js"],
       "env": {
-        "MAESTRO_API_KEY": "your-api-key",
-        "MAESTRO_PROPERTY_ID": "your-property-id"
+        "STREAMLINE_API_KEY": "your-api-key",
+        "STREAMLINE_COMPANY_ID": "your-company-id"
       }
     }
   }
 }`,
     keyEndpoints: [
-      { method: "GET", path: "/reservations", desc: "Reservation management" },
-      { method: "GET", path: "/rooms", desc: "Room inventory" },
-      { method: "GET", path: "/guests", desc: "Guest profiles" },
-      { method: "GET", path: "/tasks", desc: "Task management" },
+      { method: "GET", path: "GetReservations", desc: "List reservations" },
+      { method: "GET", path: "GetUnits", desc: "List properties/units" },
+      { method: "GET", path: "GetAvailability", desc: "Check availability" },
+      { method: "GET", path: "GetOwners", desc: "List property owners" },
+      { method: "GET", path: "GetGuests", desc: "Guest profiles" },
     ],
     tips: [
-      "Muse is newer — their API may be evolving, so check for updates regularly",
-      "Contact their team directly for the latest API documentation",
-      "Their modern architecture means the API is typically fast and well-structured",
+      "Streamline uses a method-based API — all calls go to the same endpoint with a 'method' parameter",
+      "API key goes in the query string, not headers",
+      "Rate limits are reasonable but cache responses for repeated queries",
+      "The GetUnits endpoint returns full property details including amenities and photos",
     ],
-    claudePrompt: "I run an independent hotel on Maestro PMS. How can AI-powered tools like Conduit help me compete with big chains? What specific workflows can I automate for front desk, housekeeping, and guest communications to deliver a better experience?",
+    claudePrompt: "I manage vacation rentals using Streamline VRS. How can AI tools like Conduit help me automate guest communications, coordinate cleaning crews, optimize pricing, and improve my overall guest experience? What specific daily workflows would save me the most time?",
   },
 };
 

@@ -15,7 +15,7 @@ const PMS_LIST = [
   { slug: "cloudbeds", name: "Cloudbeds", desc: "Hotel management suite", color: "#00A4E4", logo: "C" },
   { slug: "apaleo", name: "Apaleo", desc: "Cloud-native open PMS", color: "#6C63FF", logo: "A" },
   { slug: "opera", name: "Oracle Opera Cloud", desc: "Enterprise hotel PMS (OHIP)", color: "#C74634", logo: "O" },
-  { slug: "muse", name: "Muse", desc: "Next-gen PMS platform", color: "#8B5CF6", logo: "M" },
+  { slug: "muse", name: "Maestro", desc: "Independent hotel PMS", color: "#8B5CF6", logo: "M" },
 ];
 
 // ─── Conduit Wordmark ────────────────────────────────────────────────────────

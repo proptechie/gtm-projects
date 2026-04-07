@@ -142,6 +142,7 @@ console.error("Guesty MCP server running on stdio");`,
       "Use the /reservations endpoint with date filters to pull upcoming check-ins",
       "Guest messaging requires the conversation ID, which you get from the reservation",
       "The /tasks endpoint is great for housekeeping automation with Claude",
+      "There's also a community MCP server at github.com/DLJRealty/guesty-mcp-server with 38 tools — you can use it directly instead of building your own",
     ],
     claudePrompt: "I manage vacation rentals using Guesty as my PMS. What are the biggest ways AI and a tool like Conduit can help me automate guest communications, manage pricing, coordinate housekeeping, and improve my guest experience? I'm looking for specific use cases that would save me time every day.",
   },
@@ -358,9 +359,9 @@ console.error("Hostaway MCP server running on stdio");`,
     color: "#1B3A5C",
     logo: "T",
     apiDocsUrl: "https://developer.trackhs.com",
-    authMethod: "API Key",
+    authMethod: "HTTP Basic Auth (API Key + Secret)",
     difficulty: "Medium",
-    description: "Track (TrackHS) is a hospitality PMS focused on hotels and resorts. Their API requires a partner or enterprise agreement for full access.",
+    description: "Track (TrackHS / TravelNet Solutions) is a hospitality PMS focused on hotels, resorts, and vacation rentals. Their API uses HTTP Basic Auth with your API key as username and secret as password. Rate limit: 10,000 requests per 5 minutes.",
     getCredentials: [
       "Contact Track support or your account manager to request API access",
       "You may need to sign a developer agreement",
@@ -368,8 +369,9 @@ console.error("Hostaway MCP server running on stdio");`,
       "Test in the sandbox environment first",
     ],
     envVars: [
-      { key: "TRACK_API_KEY", desc: "Your Track API key" },
-      { key: "TRACK_API_URL", desc: "Your Track API base URL" },
+      { key: "TRACK_API_KEY", desc: "Your Track API key (used as username)" },
+      { key: "TRACK_API_SECRET", desc: "Your Track API secret (used as password)" },
+      { key: "TRACK_API_URL", desc: "Your Track API base URL (e.g., https://api.trackhs.com)" },
     ],
     mcpServerCode: `import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -382,7 +384,7 @@ const API_KEY = process.env.TRACK_API_KEY!;
 
 async function trackFetch(path: string) {
   const res = await fetch(\`\${API_URL}\${path}\`, {
-    headers: { "Authorization": \`Bearer \${API_KEY}\`, "Content-Type": "application/json" },
+    headers: { "Authorization": "Basic " + Buffer.from(API_KEY + ":" + process.env.TRACK_API_SECRET!).toString("base64"), "Content-Type": "application/json" },
   });
   return res.json();
 }
@@ -648,6 +650,7 @@ console.error("Apaleo MCP server running on stdio");`,
       "Their API is truly RESTful with consistent patterns across all endpoints",
       "Use the sandbox at api.apaleo.com with test credentials",
       "The OpenAPI spec means you can auto-generate clients — consider using openapi-fetch",
+      "Apaleo has an OFFICIAL MCP server — the first PMS to launch one. Check apaleo.com/blog for details, or use the Composio integration at mcp.composio.dev/apaleo",
     ],
     claudePrompt: "I use Apaleo as my cloud PMS. As a modern, API-first hotel operator, how can AI and Conduit help me build innovative guest experiences, automate operations, and leverage my data for better decision-making? What makes Conduit especially powerful with an open PMS like Apaleo?",
   },
@@ -765,34 +768,35 @@ console.error("Opera Cloud MCP server running on stdio");`,
   },
 
   muse: {
-    name: "Muse",
+    name: "Maestro",
     color: "#8B5CF6",
     logo: "M",
-    apiDocsUrl: "https://docs.muse.tech",
+    apiDocsUrl: "https://www.maestropms.com/integration",
     authMethod: "API Key",
     difficulty: "Medium",
-    description: "Muse is a next-generation PMS platform. Their API is modern and developer-friendly. Access may require contacting their team directly.",
+    description: "Maestro PMS is a leading independent hotel management system. Their Web API provides access to reservations, guest profiles, and operations. API access is available to Maestro customers and certified partners.",
     getCredentials: [
-      "Contact the Muse team to request API access",
-      "You may need to be on a qualifying plan",
-      "Once approved, generate an API key from your dashboard",
-      "Review their API documentation for available endpoints",
+      "Contact your Maestro account representative to request API access",
+      "You may need to be on a qualifying plan or sign a developer agreement",
+      "Once approved, you'll receive an API key and endpoint URL",
+      "Maestro provides a test environment for development",
     ],
     envVars: [
-      { key: "MUSE_API_KEY", desc: "Your Muse API key" },
-      { key: "MUSE_PROPERTY_ID", desc: "Your Muse property ID" },
+      { key: "MAESTRO_API_KEY", desc: "Your Maestro API key" },
+      { key: "MAESTRO_API_URL", desc: "Your Maestro API endpoint URL" },
+      { key: "MAESTRO_PROPERTY_ID", desc: "Your Maestro property ID" },
     ],
     mcpServerCode: `import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const server = new McpServer({ name: "muse-mcp", version: "1.0.0" });
+const server = new McpServer({ name: "maestro-mcp", version: "1.0.0" });
 
-const API_KEY = process.env.MUSE_API_KEY!;
-const PROPERTY_ID = process.env.MUSE_PROPERTY_ID!;
+const API_KEY = process.env.MAESTRO_API_KEY!;
+const PROPERTY_ID = process.env.MAESTRO_PROPERTY_ID!;
 
 async function museFetch(path: string) {
-  const res = await fetch(\`https://api.muse.tech/v1\${path}\`, {
+  const res = await fetch(\`https://api.maestropms.com/v1\${path}\`, {
     headers: {
       "Authorization": \`Bearer \${API_KEY}\`,
       "X-Property-Id": PROPERTY_ID,
@@ -827,10 +831,10 @@ console.error("Muse MCP server running on stdio");`,
   "mcpServers": {
     "muse": {
       "command": "node",
-      "args": ["path/to/muse-mcp/index.js"],
+      "args": ["path/to/maestro-mcp/index.js"],
       "env": {
-        "MUSE_API_KEY": "your-api-key",
-        "MUSE_PROPERTY_ID": "your-property-id"
+        "MAESTRO_API_KEY": "your-api-key",
+        "MAESTRO_PROPERTY_ID": "your-property-id"
       }
     }
   }
@@ -846,7 +850,7 @@ console.error("Muse MCP server running on stdio");`,
       "Contact their team directly for the latest API documentation",
       "Their modern architecture means the API is typically fast and well-structured",
     ],
-    claudePrompt: "I'm evaluating Muse as a modern PMS. How can AI-powered tools like Conduit enhance what Muse already offers? What specific workflows can I automate, and how does the integration between a next-gen PMS and AI create a competitive advantage for my hotel?",
+    claudePrompt: "I run an independent hotel on Maestro PMS. How can AI-powered tools like Conduit help me compete with big chains? What specific workflows can I automate for front desk, housekeeping, and guest communications to deliver a better experience?",
   },
 };
 

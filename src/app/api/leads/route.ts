@@ -3,22 +3,39 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const lead = await request.json();
-    const { firstName, lastName, email, pms, source } = lead;
+    const { firstName, lastName, email, pms } = lead;
 
     if (!email || !pms) {
       return NextResponse.json({ error: "email and pms required" }, { status: 400 });
     }
 
-    // Log lead (appears in Vercel function logs)
-    console.log("NEW LEAD:", JSON.stringify({ firstName, lastName, email, pms, source, timestamp: new Date().toISOString() }));
+    const payload = {
+      source: "mcp_guide",
+      firstName: firstName || "",
+      lastName: lastName || "",
+      email,
+      pms,
+      timestamp: new Date().toISOString(),
+    };
 
-    // If a Google Sheets webhook is configured, forward the lead
-    const sheetsWebhook = process.env.LEADS_WEBHOOK_URL;
-    if (sheetsWebhook) {
-      const blob = new Blob([JSON.stringify({ firstName, lastName, email, pms, source, timestamp: new Date().toISOString() })], { type: "text/plain" });
-      await fetch(sheetsWebhook, {
+    // Log lead (appears in Vercel function logs)
+    console.log("NEW LEAD:", JSON.stringify(payload));
+
+    // Forward to webhook if configured
+    // Forward to Conduit workflow
+    await fetch("https://api.conduit.ai/workflows?workflowId=w983hntxxmwzpdm1ktph8n7ed184e5h4", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+
+    // Also forward to optional secondary webhook
+    const webhookUrl = process.env.LEADS_WEBHOOK_URL;
+    if (webhookUrl) {
+      await fetch(webhookUrl, {
         method: "POST",
-        body: blob,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       }).catch(() => {});
     }
 

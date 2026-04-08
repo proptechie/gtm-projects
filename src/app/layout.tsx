@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     title: "Connect Your PMS to Claude | Conduit AI",
     description: "Free guides to connect your hotel PMS to Claude AI. Build your own MCP server in minutes.",
     type: "website",
-    images: ["/hero-network.jpg"],
+    images: ["/og-image.png"],
   },
 };
 

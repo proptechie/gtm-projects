@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowRight, X, Sparkles, ArrowUpRight, Zap, Cable, Bot } from "lucide-react";
+import { ArrowRight, X, Sparkles, ArrowUpRight, Zap, Cable, Bot, ChevronLeft, ChevronRight, BarChart3, CalendarCheck, DollarSign, ClipboardList, BedDouble } from "lucide-react";
 
 // ─── InView Hook ─────────────────────────────────────────────────────────────
 
@@ -23,14 +23,61 @@ function useInView() {
 // ─── PMS Data ────────────────────────────────────────────────────────────────
 
 const PMS_LIST = [
-  { slug: "guesty", name: "Guesty", desc: "Short-term rental management", logo: "/logos/pms/guesty.png", accent: "#2D8C6E" },
-  { slug: "mews", name: "Mews", desc: "Cloud hospitality platform", logo: "/logos/pms/mews.png", accent: "#1A1A2E" },
-  { slug: "hostaway", name: "Hostaway", desc: "Vacation rental software", logo: "/logos/pms/hostaway.png", accent: "#FF6B35" },
-  { slug: "track", name: "Track", desc: "Hospitality PMS", logo: "/logos/pms/track.png", accent: "#1B3A5C" },
-  { slug: "cloudbeds", name: "Cloudbeds", desc: "Hotel management suite", logo: "/logos/pms/cloudbeds.png", accent: "#00A4E4" },
-  { slug: "apaleo", name: "Apaleo", desc: "Cloud-native open PMS", logo: "/logos/pms/apaleo.png", accent: "#6C63FF" },
-  { slug: "opera", name: "Opera Cloud", desc: "Enterprise hotel PMS (OHIP)", logo: "/logos/pms/oracle.png", accent: "#C74634" },
-  { slug: "streamline", name: "Streamline", desc: "Vacation rental software", logo: "/logos/pms/streamline.png", accent: "#2B7A78" },
+  { slug: "guesty", name: "Guesty", desc: "Short-term rental management", logo: "/logos/pms/guesty.png", accent: "#2D8C6E", type: "str" as const },
+  { slug: "mews", name: "Mews", desc: "Cloud hospitality platform", logo: "/logos/pms/mews.png", accent: "#1A1A2E", type: "hotel" as const },
+  { slug: "hostaway", name: "Hostaway", desc: "Vacation rental software", logo: "/logos/pms/hostaway.png", accent: "#FF6B35", type: "str" as const },
+  { slug: "track", name: "Track", desc: "Hospitality PMS", logo: "/logos/pms/track.png", accent: "#1B3A5C", type: "hotel" as const },
+  { slug: "cloudbeds", name: "Cloudbeds", desc: "Hotel management suite", logo: "/logos/pms/cloudbeds.png", accent: "#00A4E4", type: "hotel" as const },
+  { slug: "apaleo", name: "Apaleo", desc: "Cloud-native open PMS", logo: "/logos/pms/apaleo.png", accent: "#6C63FF", type: "hotel" as const },
+  { slug: "opera", name: "Opera Cloud", desc: "Enterprise hotel PMS (OHIP)", logo: "/logos/pms/oracle.png", accent: "#C74634", type: "hotel" as const },
+  { slug: "streamline", name: "Streamline", desc: "Vacation rental software", logo: "/logos/pms/streamline.png", accent: "#2B7A78", type: "str" as const },
+];
+
+// ─── MCP Prompt Cards ────────────────────────────────────────────────────────
+
+const MCP_PROMPTS = [
+  {
+    category: "Analytics",
+    icon: BarChart3,
+    prompt: "What was my occupancy rate last month and which properties underperformed?",
+    pms: ["guesty", "hostaway", "mews", "apaleo", "cloudbeds"],
+    endpoints: ["GET /reservations", "GET /listings"],
+  },
+  {
+    category: "Operations",
+    icon: CalendarCheck,
+    prompt: "Show me all check-ins arriving today and flag any with special requests",
+    pms: ["guesty", "mews", "hostaway", "track", "cloudbeds", "apaleo", "opera"],
+    endpoints: ["GET /reservations", "GET /guests"],
+  },
+  {
+    category: "Revenue",
+    icon: DollarSign,
+    prompt: "Compare my average nightly rate this quarter vs. last quarter across all units",
+    pms: ["guesty", "hostaway", "streamline", "cloudbeds"],
+    endpoints: ["GET /reservations", "GET /financials"],
+  },
+  {
+    category: "Operations",
+    icon: ClipboardList,
+    prompt: "Which rooms need housekeeping attention today and what's the priority order?",
+    pms: ["mews", "track", "cloudbeds", "opera"],
+    endpoints: ["GET /housekeeping", "GET /rooms"],
+  },
+  {
+    category: "Inventory",
+    icon: BedDouble,
+    prompt: "Show me all vacant units for next weekend and their current nightly rates",
+    pms: ["guesty", "hostaway", "streamline", "apaleo", "cloudbeds"],
+    endpoints: ["GET /listings", "GET /calendar"],
+  },
+  {
+    category: "Analytics",
+    icon: BarChart3,
+    prompt: "Which guests are repeat bookers and how much total revenue has each generated?",
+    pms: ["guesty", "mews", "hostaway", "apaleo", "opera"],
+    endpoints: ["GET /guests", "GET /reservations"],
+  },
 ];
 
 // ─── Conduit Logo ────────────────────────────────────────────────────────────
@@ -59,7 +106,7 @@ function LeadModal({ pms, onClose }: { pms: typeof PMS_LIST[0]; onClose: () => v
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    try { await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, pms: pms.slug, source: "pms-claude-landing" }) }); } catch {}
+    try { await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, pms: pms.slug }) }); } catch {}
     router.push(`/guides/${pms.slug}?utm_source=pms_claude_guides&utm_medium=referral&utm_campaign=pms_claude_guides&utm_content=${pms.slug}_guide`);
   };
   return (
@@ -80,7 +127,7 @@ function LeadModal({ pms, onClose }: { pms: typeof PMS_LIST[0]; onClose: () => v
             <input required value={form.lastName} onChange={(e) => setForm(f => ({ ...f, lastName: e.target.value }))} placeholder="Last name" className="border border-[var(--ct-neutral-300)] rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ct-blue-700)] focus:border-transparent transition" />
           </div>
           <input required type="email" value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Work email" className="w-full border border-[var(--ct-neutral-300)] rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ct-blue-700)] focus:border-transparent transition" />
-          <button type="submit" disabled={submitting} className="w-full bg-[var(--ct-neutral-800)] text-white font-medium py-3 rounded-lg hover:bg-[var(--ct-neutral-700)] transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm">
+          <button type="submit" disabled={submitting} className="w-full bg-[var(--ct-neutral-800)] text-white font-medium py-3 rounded-xl hover:bg-[var(--ct-neutral-700)] transition disabled:opacity-50 flex items-center justify-center gap-2 text-sm">
             {submitting ? "Loading..." : <><span>Get the Guide</span><ArrowRight className="w-4 h-4" /></>}
           </button>
           <p className="text-[10px] text-[var(--ct-neutral-400)] text-center">No spam, ever. Just the guide.</p>
@@ -97,7 +144,7 @@ function RequestModal({ onClose }: { onClose: () => void }) {
   const [done, setDone] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try { await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, pms: `request:${form.pmsName}`, source: "pms-request" }) }); } catch {}
+    try { await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ firstName: form.firstName, lastName: form.lastName, email: form.email, pms: form.pmsName }) }); } catch {}
     setDone(true);
   };
   return (
@@ -116,10 +163,114 @@ function RequestModal({ onClose }: { onClose: () => void }) {
             </div>
             <input required type="email" value={form.email} onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Work email" className="w-full border border-[var(--ct-neutral-300)] rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ct-blue-700)]" />
             <input required value={form.pmsName} onChange={(e) => setForm(f => ({ ...f, pmsName: e.target.value }))} placeholder="Your PMS (e.g., RMS Cloud, Protel)" className="w-full border border-[var(--ct-neutral-300)] rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ct-blue-700)]" />
-            <button type="submit" className="w-full bg-[var(--ct-neutral-800)] text-white font-medium py-3 rounded-lg hover:bg-[var(--ct-neutral-700)] transition flex items-center justify-center gap-2 text-sm">Request Guide <ArrowRight className="w-4 h-4" /></button>
+            <button type="submit" className="w-full bg-[var(--ct-neutral-800)] text-white font-medium py-3 rounded-xl hover:bg-[var(--ct-neutral-700)] transition flex items-center justify-center gap-2 text-sm">Request Guide <ArrowRight className="w-4 h-4" /></button>
           </form></>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── MCP Prompt Carousel ─────────────────────────────────────────────────────
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(1024);
+  useEffect(() => {
+    const update = () => setWidth(window.innerWidth);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  return width;
+}
+
+function PromptCarousel() {
+  const [index, setIndex] = useState(0);
+  const width = useWindowWidth();
+  const visibleCount = width < 640 ? 1 : width < 1024 ? 2 : 3;
+  const maxIndex = Math.max(0, MCP_PROMPTS.length - visibleCount);
+
+  // Reset index if it exceeds new maxIndex on resize
+  useEffect(() => {
+    if (index > maxIndex) setIndex(maxIndex);
+  }, [maxIndex, index]);
+
+  const pmsNameMap: Record<string, string> = {};
+  PMS_LIST.forEach(p => { pmsNameMap[p.slug] = p.name; });
+
+  const gap = 16;
+  const slideWidth = 100 / visibleCount;
+  const offset = index * (slideWidth + (gap * (visibleCount - 1)) / visibleCount / visibleCount);
+
+  return (
+    <div className="relative">
+      <div className="overflow-hidden">
+        <div
+          className="flex gap-4 transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${index * (100 / visibleCount + gap / (visibleCount * 3))}%)` }}
+        >
+          {MCP_PROMPTS.map((card, i) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={i}
+                className="shrink-0 bg-white border border-[var(--ct-neutral-200)] rounded-xl p-5 hover:shadow-lg hover:border-[var(--ct-neutral-300)] transition-all duration-200"
+                style={{ width: `calc(${100 / visibleCount}% - ${(visibleCount - 1) * 16 / visibleCount}px)` }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-lg bg-[var(--ct-blue-50)] border border-[var(--ct-blue-200)] flex items-center justify-center">
+                    <Icon className="w-3.5 h-3.5 text-[var(--ct-blue-700)]" />
+                  </div>
+                  <span className="text-[10px] font-medium text-[var(--ct-neutral-400)] uppercase tracking-wider">{card.category}</span>
+                </div>
+                <p className="text-sm font-medium text-[var(--ct-neutral-800)] leading-snug mb-4">&ldquo;{card.prompt}&rdquo;</p>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {card.pms.slice(0, 4).map(slug => (
+                    <span key={slug} className="text-[10px] font-medium bg-[var(--ct-neutral-100)] text-[var(--ct-neutral-600)] px-2 py-0.5 rounded-full">
+                      {pmsNameMap[slug]}
+                    </span>
+                  ))}
+                  {card.pms.length > 4 && (
+                    <span className="text-[10px] font-medium bg-[var(--ct-neutral-100)] text-[var(--ct-neutral-400)] px-2 py-0.5 rounded-full">
+                      +{card.pms.length - 4}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {card.endpoints.map(ep => (
+                    <code key={ep} className="text-[9px] font-mono bg-[var(--ct-neutral-900)] text-[var(--ct-neutral-300)] px-2 py-0.5 rounded">
+                      {ep}
+                    </code>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {maxIndex > 0 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => setIndex(Math.max(0, index - 1))}
+            disabled={index === 0}
+            className="w-8 h-8 rounded-full border border-[var(--ct-neutral-200)] flex items-center justify-center hover:bg-[var(--ct-neutral-100)] transition disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="w-4 h-4 text-[var(--ct-neutral-600)]" />
+          </button>
+          <div className="flex gap-1.5">
+            {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+              <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === index ? "bg-[var(--ct-neutral-800)]" : "bg-[var(--ct-neutral-300)]"}`} />
+            ))}
+          </div>
+          <button
+            onClick={() => setIndex(Math.min(maxIndex, index + 1))}
+            disabled={index >= maxIndex}
+            className="w-8 h-8 rounded-full border border-[var(--ct-neutral-200)] flex items-center justify-center hover:bg-[var(--ct-neutral-100)] transition disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="w-4 h-4 text-[var(--ct-neutral-600)]" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -132,15 +283,21 @@ export default function Page() {
   const hero = useInView();
   const steps = useInView();
   const grid = useInView();
+  const mcp = useInView();
   const coming = useInView();
-  const request = useInView();
+
+  // Determine if the last-clicked PMS was hotel or STR for footer messaging
+  const lastPmsType = selectedPms?.type;
 
   return (
     <div className="min-h-screen">
       {/* ── Nav ─────────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[var(--ct-neutral-200)]">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-          <ConduitLogo className="h-[18px] text-[var(--ct-neutral-900)]" />
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-medium text-[var(--ct-neutral-400)] uppercase tracking-widest">powered by</span>
+            <ConduitLogo className="h-[18px] text-[var(--ct-neutral-900)]" />
+          </div>
           <div className="flex items-center gap-4">
             <a href="https://www.conduit.ai?utm_source=pms_claude_guides&utm_medium=referral&utm_campaign=pms_claude_guides&utm_content=nav_link" className="text-xs text-[var(--ct-neutral-500)] hover:text-[var(--ct-neutral-900)] transition hidden sm:flex items-center gap-1">
               conduit.ai <ArrowUpRight className="w-3 h-3" />
@@ -155,14 +312,13 @@ export default function Page() {
       {/* ── Hero ────────────────────────────────────────────────────── */}
       <section ref={hero.ref} className="pt-20 pb-16 md:pt-28 md:pb-20">
         <div className="max-w-3xl mx-auto px-6 text-center">
-          {/* Claude + Conduit badge */}
-          <div className={`inline-flex items-center gap-2 bg-white border border-[var(--ct-neutral-200)] rounded-full pl-1.5 pr-3.5 py-1 mb-8 shadow-sm ${hero.visible ? "anim-fade-up" : "opacity-0"}`}>
-            <Image src="/logos/pms/claude.png" alt="Claude" width={24} height={24} className="rounded-full" unoptimized />
-            <span className="text-[11px] font-medium text-[var(--ct-neutral-600)]">Powered by Claude AI</span>
-          </div>
-
-          <h1 className={`text-[clamp(2.2rem,5.5vw,3.8rem)] font-medium text-[var(--ct-neutral-900)] tracking-[-0.03em] leading-[1.1] ${hero.visible ? "anim-fade-up delay-1" : "opacity-0"}`}>
-            Connect your PMS<br />to <span className="text-[var(--ct-blue-700)]">Claude</span>
+          <h1 className={`text-[clamp(2.2rem,5.5vw,3.8rem)] font-medium text-[var(--ct-neutral-900)] tracking-[-0.03em] leading-[1.2] ${hero.visible ? "anim-fade-up" : "opacity-0"}`}>
+            Connect your PMS<br />
+            <span className="inline-flex items-center gap-[0.12em]">
+              to
+              <Image src="/logos/claude-spark.png" alt="" width={80} height={80} className="inline-block h-[0.75em] w-[0.75em] object-contain mx-[0.05em] -mt-[0.02em]" unoptimized />
+              <span style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontWeight: 400, letterSpacing: "-0.02em" }}>Claude</span>
+            </span>
           </h1>
 
           <p className={`text-[15px] text-[var(--ct-neutral-500)] mt-5 max-w-lg mx-auto leading-relaxed ${hero.visible ? "anim-fade-up delay-2" : "opacity-0"}`}>
@@ -170,11 +326,8 @@ export default function Page() {
           </p>
 
           <div className={`flex flex-col sm:flex-row gap-3 justify-center mt-8 ${hero.visible ? "anim-fade-up delay-3" : "opacity-0"}`}>
-            <a href="#guides" className="bg-[var(--ct-neutral-800)] text-white px-6 py-3 rounded-lg font-medium text-sm hover:bg-[var(--ct-neutral-700)] transition inline-flex items-center justify-center gap-2 shadow-sm">
+            <a href="#guides" className="bg-[var(--ct-neutral-800)] text-white px-6 py-3 rounded-xl font-medium text-sm hover:bg-[var(--ct-neutral-700)] transition inline-flex items-center justify-center gap-2 shadow-sm">
               Browse Guides <ArrowRight className="w-4 h-4" />
-            </a>
-            <a href="https://www.conduit.ai?utm_source=pms_claude_guides&utm_medium=referral&utm_campaign=pms_claude_guides&utm_content=hero_cta" className="bg-white text-[var(--ct-neutral-700)] px-6 py-3 rounded-lg font-medium text-sm border border-[var(--ct-neutral-200)] hover:border-[var(--ct-neutral-400)] transition inline-flex items-center justify-center gap-2">
-              Learn about Conduit
             </a>
           </div>
 
@@ -243,11 +396,41 @@ export default function Page() {
               </button>
             ))}
           </div>
+
+          {/* Request — inline under grid */}
+          <div className={`mt-6 bg-white border border-[var(--ct-neutral-200)] rounded-xl p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 ${grid.visible ? "anim-fade-up delay-6" : "opacity-0"}`}>
+            <div>
+              <h3 className="font-medium text-[var(--ct-neutral-900)]">Don&apos;t see your PMS?</h3>
+              <p className="text-sm text-[var(--ct-neutral-500)] mt-0.5">Request a guide and we&apos;ll build it for you.</p>
+            </div>
+            <button onClick={() => setShowRequest(true)} className="bg-[var(--ct-neutral-800)] text-white font-medium px-5 py-2.5 rounded-xl hover:bg-[var(--ct-neutral-700)] transition text-sm flex items-center gap-2 shrink-0">
+              Request a Guide <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── What is MCP? ────────────────────────────────────────────── */}
+      <section ref={mcp.ref} className="py-16 md:py-24 bg-white border-y border-[var(--ct-neutral-200)]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className={`mb-10 ${mcp.visible ? "anim-fade-up" : "opacity-0"}`}>
+            <p className="text-[10px] font-medium text-[var(--ct-blue-700)] uppercase tracking-widest mb-2">What is MCP?</p>
+            <h2 className="text-2xl md:text-3xl font-medium text-[var(--ct-neutral-900)] tracking-tight">
+              Your PMS, inside Claude
+            </h2>
+            <p className="text-sm text-[var(--ct-neutral-500)] mt-2 max-w-xl leading-relaxed">
+              MCP (Model Context Protocol) lets Claude talk directly to your property management system. No dashboards, no exports — just ask questions in plain English and get real answers from your live data.
+            </p>
+          </div>
+
+          <div className={`${mcp.visible ? "anim-fade-up delay-2" : "opacity-0"}`}>
+            <PromptCarousel />
+          </div>
         </div>
       </section>
 
       {/* ── Coming Soon ─────────────────────────────────────────────── */}
-      <section ref={coming.ref} className="pb-16 md:pb-20">
+      <section ref={coming.ref} className="py-16 md:py-20">
         <div className="max-w-5xl mx-auto px-6">
           <div className={`bg-[var(--ct-neutral-900)] rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 ${coming.visible ? "anim-fade-up" : "opacity-0"}`}>
             <div className="flex-1">
@@ -267,30 +450,33 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ── Request ─────────────────────────────────────────────────── */}
-      <section ref={request.ref} className="pb-20 md:pb-28">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className={`bg-white border border-[var(--ct-neutral-200)] rounded-xl p-6 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 ${request.visible ? "anim-fade-up" : "opacity-0"}`}>
-            <div>
-              <h3 className="font-medium text-[var(--ct-neutral-900)]">Don&apos;t see your PMS?</h3>
-              <p className="text-sm text-[var(--ct-neutral-500)] mt-0.5">Request a guide and we&apos;ll build it for you.</p>
-            </div>
-            <button onClick={() => setShowRequest(true)} className="bg-[var(--ct-neutral-800)] text-white font-medium px-5 py-2.5 rounded-lg hover:bg-[var(--ct-neutral-700)] transition text-sm flex items-center gap-2 shrink-0">
-              Request a Guide <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </section>
-
       {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="border-t border-[var(--ct-neutral-200)] bg-white">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <ConduitLogo className="h-[14px] text-[var(--ct-neutral-400)]" />
-          <div className="flex items-center gap-5">
-            <a href="https://www.conduit.ai?utm_source=pms_claude_guides&utm_medium=referral&utm_campaign=pms_claude_guides&utm_content=footer_link" className="text-xs text-[var(--ct-neutral-400)] hover:text-[var(--ct-neutral-700)] transition flex items-center gap-1">
-              conduit.ai <ArrowUpRight className="w-3 h-3" />
+      <footer className="border-t border-[var(--ct-neutral-200)] bg-[var(--ct-neutral-900)]">
+        <div className="max-w-5xl mx-auto px-6 py-12 md:py-16">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+            <div className="flex-1">
+              <p className="text-lg md:text-xl font-medium text-white leading-snug">
+                {lastPmsType === "str"
+                  ? "Wonder what AI could do for your short-term rental?"
+                  : "Wonder what AI could do for your hotel?"
+                }
+              </p>
+              <p className="text-sm text-white/40 mt-2 max-w-md leading-relaxed">
+                Conduit automates guest messaging, operations, and upsells across every major PMS. See how it works for your properties.
+              </p>
+            </div>
+            <a
+              href="https://forms.default.com/824113?utm_source=pms_claude_guides&utm_medium=referral&utm_campaign=pms_claude_guides&utm_content=landing_footer_demo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 bg-white text-[var(--ct-neutral-900)] font-medium px-6 py-3 rounded-xl text-sm hover:bg-[var(--ct-neutral-200)] transition inline-flex items-center gap-2"
+            >
+              See a Live Demo <ArrowRight className="w-4 h-4" />
             </a>
-            <span className="text-xs text-[var(--ct-neutral-300)]">{new Date().getFullYear()}</span>
+          </div>
+          <div className="mt-10 pt-6 border-t border-white/10 flex items-center justify-between">
+            <ConduitLogo className="h-[14px]" color="rgba(255,255,255,0.3)" />
+            <span className="text-xs text-white/20">{new Date().getFullYear()}</span>
           </div>
         </div>
       </footer>

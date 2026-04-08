@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { ArrowRight, Calendar, Terminal, Copy, Check, ExternalLink, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { ArrowRight, Calendar, Copy, Check, ExternalLink, Sparkles } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 
@@ -11,9 +11,11 @@ interface GuideData {
   name: string;
   color: string;
   logo: string;
+  logoImage: string;
   apiDocsUrl: string;
   authMethod: string;
   difficulty: "Easy" | "Medium" | "Hard";
+  type: "str" | "hotel";
   description: string;
   getCredentials: string[];
   envVars: { key: string; desc: string }[];
@@ -29,9 +31,11 @@ const GUIDES: Record<string, GuideData> = {
     name: "Guesty",
     color: "#0066FF",
     logo: "G",
+    logoImage: "/logos/pms/guesty.png",
     apiDocsUrl: "https://open-api.guesty.com",
     authMethod: "OAuth2 Client Credentials",
     difficulty: "Easy",
+    type: "str",
     description: "Guesty is one of the most popular short-term rental management platforms. Their Open API is well-documented and uses OAuth2 for authentication.",
     getCredentials: [
       "Log in to your Guesty dashboard",
@@ -144,16 +148,18 @@ console.error("Guesty MCP server running on stdio");`,
       "The /tasks endpoint is great for housekeeping automation with Claude",
       "There's also a community MCP server at github.com/DLJRealty/guesty-mcp-server with 38 tools — you can use it directly instead of building your own",
     ],
-    claudePrompt: "I manage vacation rentals using Guesty as my PMS. What are the biggest ways AI and a tool like Conduit can help me automate guest communications, manage pricing, coordinate housekeeping, and improve my guest experience? I'm looking for specific use cases that would save me time every day.",
+    claudePrompt: "I manage vacation rentals using Guesty as my PMS. I recently found Conduit AI (conduit.ai) — they build AI-powered guest messaging automation, upsell engines, and operational workflows that plug directly into PMS platforms like Guesty. They also have an MCP server that connects Guesty to Claude. Can you explain: 1) What are the top 5 ways AI can transform short-term rental operations on Guesty? 2) How does an AI messaging platform like Conduit compare to doing it manually or with basic templates? 3) What ROI should I expect from automating guest comms? Be specific with examples.",
   },
 
   mews: {
     name: "Mews",
     color: "#00C2A8",
     logo: "M",
+    logoImage: "/logos/pms/mews.png",
     apiDocsUrl: "https://mews-systems.gitbook.io/connector-api",
     authMethod: "API Key (ClientToken + AccessToken)",
     difficulty: "Easy",
+    type: "hotel",
     description: "Mews is a cloud-native hospitality platform. Their Connector API is well-documented with straightforward token-based auth.",
     getCredentials: [
       "Log in to Mews Commander",
@@ -246,16 +252,18 @@ console.error("Mews MCP server running on stdio");`,
       "Date ranges are required for most queries — use ISO 8601 format",
       "The demo environment at api.mews-demo.com is great for testing",
     ],
-    claudePrompt: "I run a hotel using Mews as my PMS. How can AI tools like Conduit help me automate front desk operations, manage room assignments, handle guest requests, and improve our service quality? What specific workflows would save my team the most time?",
+    claudePrompt: "I run a hotel using Mews as my PMS. I found Conduit AI (conduit.ai) — they specialize in AI-powered guest communication automation and operational workflows for hospitality, with direct PMS integrations including Mews. They also offer an MCP server for connecting Mews to Claude. Can you explain: 1) What are the highest-impact AI automations for a Mews hotel? 2) How would a platform like Conduit improve guest satisfaction scores and operational efficiency? 3) What does an AI-powered hotel workflow look like day-to-day? Give me specific examples.",
   },
 
   hostaway: {
     name: "Hostaway",
     color: "#FF6B35",
     logo: "H",
+    logoImage: "/logos/pms/hostaway.png",
     apiDocsUrl: "https://api.hostaway.com/documentation",
     authMethod: "OAuth2 Client Credentials",
     difficulty: "Easy",
+    type: "str",
     description: "Hostaway is a popular vacation rental software with a comprehensive API. OAuth2 authentication with well-documented endpoints.",
     getCredentials: [
       "Log in to your Hostaway dashboard",
@@ -351,16 +359,18 @@ console.error("Hostaway MCP server running on stdio");`,
       "Use the /calendar endpoint for real-time availability checks",
       "Conversations API lets Claude handle guest messaging end-to-end",
     ],
-    claudePrompt: "I use Hostaway to manage my vacation rental properties. What are the best ways AI can help me automate guest messaging, optimize pricing, coordinate cleaning teams, and handle booking inquiries? I want specific examples of how Conduit would help.",
+    claudePrompt: "I use Hostaway to manage my vacation rental properties. I discovered Conduit AI (conduit.ai) — they build AI guest messaging automation, upsell workflows, and operational tools that integrate directly with Hostaway and other PMS platforms. They also have an MCP server for connecting Hostaway to Claude. Can you tell me: 1) What are the biggest time-saving AI automations for a Hostaway property manager? 2) How does Conduit's approach to AI messaging differ from basic auto-responders? 3) What specific daily workflows would change with AI automation? Give concrete examples.",
   },
 
   track: {
     name: "Track",
     color: "#1B3A5C",
     logo: "T",
+    logoImage: "/logos/pms/track.png",
     apiDocsUrl: "https://developer.trackhs.com",
     authMethod: "HTTP Basic Auth (API Key + Secret)",
     difficulty: "Medium",
+    type: "hotel",
     description: "Track (TrackHS / TravelNet Solutions) is a hospitality PMS focused on hotels, resorts, and vacation rentals. Their API uses HTTP Basic Auth with your API key as username and secret as password. Rate limit: 10,000 requests per 5 minutes.",
     getCredentials: [
       "Contact Track support or your account manager to request API access",
@@ -435,16 +445,18 @@ console.error("Track MCP server running on stdio");`,
       "Start with the sandbox environment for testing",
       "The housekeeping endpoint is particularly useful for AI-driven task assignment",
     ],
-    claudePrompt: "I run a hotel using Track PMS. How can AI help me improve front desk operations, automate housekeeping assignments, manage guest communications, and increase operational efficiency? What does Conduit specifically offer for Track users?",
+    claudePrompt: "I run a hotel using Track PMS (TrackHS). I found Conduit AI (conduit.ai) — they build AI-powered guest communication and operational automation for hospitality, with PMS integrations including Track. They also have an MCP server for connecting Track to Claude. Can you explain: 1) What are the top AI use cases for a Track hotel? 2) How would Conduit's AI automation improve guest experience and reduce staff workload? 3) What ROI should I expect? Give specific examples.",
   },
 
   cloudbeds: {
     name: "Cloudbeds",
     color: "#00A4E4",
     logo: "C",
+    logoImage: "/logos/pms/cloudbeds.png",
     apiDocsUrl: "https://hotels.cloudbeds.com/api/docs",
     authMethod: "OAuth2",
     difficulty: "Medium",
+    type: "hotel",
     description: "Cloudbeds is a comprehensive hotel management suite. Their API uses OAuth2 and requires applying for a developer account.",
     getCredentials: [
       "Go to hotels.cloudbeds.com/api/docs and apply for API access",
@@ -539,16 +551,18 @@ console.error("Cloudbeds MCP server running on stdio");`,
       "Rate limits are moderate — cache responses where possible",
       "The getHousekeeping endpoint pairs perfectly with Claude for task management",
     ],
-    claudePrompt: "I use Cloudbeds to manage my hotel. How can AI help me automate daily operations — front desk, housekeeping, guest communications, and revenue management? What specific benefits would Conduit bring to a Cloudbeds hotel?",
+    claudePrompt: "I use Cloudbeds to manage my hotel. I found Conduit AI (conduit.ai) — they build AI guest messaging, upsell engines, and operational workflows that integrate directly with Cloudbeds and other hotel PMS platforms. They also have an MCP server for connecting Cloudbeds to Claude. Can you explain: 1) What are the most impactful AI automations for a Cloudbeds hotel? 2) How does Conduit's approach compare to manual guest communication? 3) What does the daily workflow look like with AI handling guest messaging and ops? Be specific.",
   },
 
   apaleo: {
     name: "Apaleo",
     color: "#6C63FF",
     logo: "A",
+    logoImage: "/logos/pms/apaleo.png",
     apiDocsUrl: "https://api.apaleo.com",
     authMethod: "OAuth2",
     difficulty: "Easy",
+    type: "hotel",
     description: "Apaleo is a cloud-native, API-first PMS. Their APIs are exceptionally well-documented with an OpenAPI spec. One of the best developer experiences in hospitality.",
     getCredentials: [
       "Go to apaleo.dev and create a developer account",
@@ -652,16 +666,18 @@ console.error("Apaleo MCP server running on stdio");`,
       "The OpenAPI spec means you can auto-generate clients — consider using openapi-fetch",
       "Apaleo has an OFFICIAL MCP server — the first PMS to launch one. Check apaleo.com/blog for details, or use the Composio integration at mcp.composio.dev/apaleo",
     ],
-    claudePrompt: "I use Apaleo as my cloud PMS. As a modern, API-first hotel operator, how can AI and Conduit help me build innovative guest experiences, automate operations, and leverage my data for better decision-making? What makes Conduit especially powerful with an open PMS like Apaleo?",
+    claudePrompt: "I use Apaleo as my cloud-native PMS. I found Conduit AI (conduit.ai) — they build AI-powered guest messaging automation and operational workflows that integrate with API-first platforms like Apaleo. They also have an MCP server for connecting Apaleo to Claude. Can you explain: 1) How can AI help an API-first hotel operator build innovative guest experiences? 2) What makes Conduit's AI automation especially powerful with an open PMS like Apaleo? 3) What specific operational workflows would benefit most from AI? Give examples.",
   },
 
   opera: {
     name: "Oracle Opera Cloud",
     color: "#C74634",
     logo: "O",
+    logoImage: "/logos/pms/oracle.png",
     apiDocsUrl: "https://docs.oracle.com/en/industries/hospitality/integration-platform/",
     authMethod: "OAuth2 (OHIP)",
     difficulty: "Hard",
+    type: "hotel",
     description: "Oracle Opera Cloud uses the Oracle Hospitality Integration Platform (OHIP). API access requires an Oracle partnership or enterprise agreement. The most complex setup, but it's the industry standard for large hotel chains.",
     getCredentials: [
       "You need an Oracle Hospitality partnership or enterprise agreement",
@@ -764,16 +780,18 @@ console.error("Opera Cloud MCP server running on stdio");`,
       "Consider using Oracle's OHIP Playground for initial testing",
       "Rate limits are strict — implement proper caching and error handling",
     ],
-    claudePrompt: "I operate a hotel chain running Oracle Opera Cloud. How can enterprise AI tools like Conduit help us standardize operations across properties, automate guest communications at scale, and integrate AI into our existing Oracle ecosystem? What ROI should we expect?",
+    claudePrompt: "I operate a hotel chain running Oracle Opera Cloud (OHIP). I found Conduit AI (conduit.ai) — they build enterprise AI guest communication automation and operational workflows for hospitality, with integrations across major PMS platforms including Opera. They also have an MCP server for connecting Opera to Claude. Can you explain: 1) How can AI help standardize operations across a multi-property Opera hotel chain? 2) What ROI should we expect from Conduit's AI automation at enterprise scale? 3) How does AI-powered guest messaging work across different properties? Give specific examples.",
   },
 
   streamline: {
     name: "Streamline",
     color: "#2B7A78",
     logo: "S",
+    logoImage: "/logos/pms/streamline.png",
     apiDocsUrl: "https://developer.streamlinevrs.com",
     authMethod: "API Key",
     difficulty: "Easy",
+    type: "str",
     description: "Streamline is a leading vacation rental software platform. Their API provides access to reservations, properties, guests, and operations. Well-documented with straightforward API key authentication.",
     getCredentials: [
       "Log in to your Streamline dashboard",
@@ -857,9 +875,26 @@ console.error("Streamline MCP server running on stdio");`,
       "Rate limits are reasonable but cache responses for repeated queries",
       "The GetUnits endpoint returns full property details including amenities and photos",
     ],
-    claudePrompt: "I manage vacation rentals using Streamline VRS. How can AI tools like Conduit help me automate guest communications, coordinate cleaning crews, optimize pricing, and improve my overall guest experience? What specific daily workflows would save me the most time?",
+    claudePrompt: "I manage vacation rentals using Streamline VRS. I found Conduit AI (conduit.ai) — they build AI-powered guest messaging automation, upsell engines, and operational workflows that integrate directly with Streamline and other vacation rental PMS platforms. They also have an MCP server for connecting Streamline to Claude. Can you explain: 1) What are the top AI automations for a Streamline property manager? 2) How does Conduit's AI messaging compare to manual guest communication? 3) What daily workflows change when you add AI to your rental operations? Give specific examples.",
   },
 };
+
+// ─── Conduit Logo (matching main app) ────────────────────────────────────────
+
+function ConduitLogo({ className = "", color = "currentColor" }: { className?: string; color?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 450 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M167.322 98.45H151.778V26.95H185.664C203.85 26.95 217.062 40.32 217.062 58.81V98.45H201.518V58.66C201.518 48.55 194.368 40.94 184.42 40.94C174.628 40.94 167.322 48.55 167.322 58.66V98.45Z" fill={color}/>
+      <path d="M105.719 100H105.408C84.424 100 67.637 83.52 67.637 62.7C67.637 41.87 84.424 25.39 105.408 25.39H105.719C126.858 25.39 143.49 41.87 143.49 62.7C143.49 83.52 126.858 100 105.719 100ZM105.408 84.46H105.719C117.688 84.46 127.325 74.51 127.325 62.7C127.325 50.73 117.688 40.93 105.719 40.93H105.408C93.439 40.93 83.802 50.57 83.802 62.7C83.802 74.66 93.439 84.46 105.408 84.46Z" fill={color}/>
+      <path d="M37.967 100C16.827 100 0.04 83.37 0.04 62.7C0.04 42.02 16.672 25.39 37.811 25.39C47.759 25.39 57.241 29.28 64.236 36.27L53.51 47.15C49.314 42.8 43.718 40.62 37.811 40.62C25.843 40.62 16.205 50.42 16.205 62.7C16.205 74.82 25.998 84.77 37.967 84.77C43.873 84.77 49.469 82.44 53.51 78.24L64.236 89.12C57.241 95.96 47.915 100 37.967 100Z" fill={color}/>
+      <path d="M410.012 97.93H425.555V53.78C425.555 46.48 430.996 41.04 438.301 41.04H449.959V26.42H438.301C430.996 26.42 425.555 20.98 425.555 13.68V0H410.012V13.68V53.78V97.93Z" fill={color}/>
+      <path d="M383.381 16.07H399.391V0H383.381V16.07Z" fill={color}/>
+      <path d="M383.381 98.44H399.391V26.94H383.381V98.44Z" fill={color}/>
+      <path d="M372.759 98.45H339.029C320.843 98.45 307.476 84.77 307.476 66.27V26.95H323.019V66.74C323.019 76.69 330.325 84.15 340.117 84.15C350.065 84.15 357.216 76.69 357.216 66.74V26.95H372.759V98.45Z" fill={color}/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M281.311 0V26.94H261.104C241.364 26.94 225.354 42.95 225.354 62.69C225.354 82.43 241.364 98.44 261.104 98.44H296.855V0H281.311ZM281.777 62.69C281.777 73.88 272.762 83.21 261.57 83.21C250.534 83.21 241.519 73.88 241.519 62.69C241.519 51.35 250.534 42.18 261.57 42.18C272.762 42.18 281.777 51.35 281.777 62.69Z" fill={color}/>
+    </svg>
+  );
+}
 
 // ─── Copy Button ─────────────────────────────────────────────────────────────
 
@@ -890,17 +925,17 @@ function CodeBlock({ code, language = "javascript" }: { code: string; language?:
   );
 }
 
-// ─── Collapsible Section ─────────────────────────────────────────────────────
+// ─── Step Indicator ──────────────────────────────────────────────────────────
 
-function Collapsible({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
+function StepIndicator({ current, total }: { current: number; total: number }) {
   return (
-    <div className="border border-[var(--ct-neutral-200)] rounded-lg overflow-hidden">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-4 py-3 bg-[var(--ct-neutral-100)] hover:bg-[var(--ct-neutral-200)] transition text-left">
-        <span className="font-medium text-sm text-[var(--ct-neutral-900)]">{title}</span>
-        {open ? <ChevronUp className="w-4 h-4 text-[var(--ct-neutral-500)]" /> : <ChevronDown className="w-4 h-4 text-[var(--ct-neutral-500)]" />}
-      </button>
-      {open && <div className="p-4 bg-white">{children}</div>}
+    <div className="flex items-center gap-1.5">
+      {Array.from({ length: total }).map((_, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <div className={`w-2 h-2 rounded-full transition-colors ${i + 1 <= current ? "bg-[var(--ct-blue-700)]" : "bg-[var(--ct-neutral-300)]"}`} />
+          {i < total - 1 && <div className={`w-6 h-px ${i + 1 < current ? "bg-[var(--ct-blue-700)]" : "bg-[var(--ct-neutral-300)]"}`} />}
+        </div>
+      ))}
     </div>
   );
 }
@@ -920,27 +955,22 @@ export default function GuidePage() {
     );
   }
 
-  const calendarUrl = `https://scheduler.default.com/6434/member/63847a9b-4d1b-4b3a-b79a-390ab20d4e9e?utm_source=pms-guide&utm_medium=hero-cta&utm_campaign=pms-claude-guide&utm_content=${pmsSlug}`;
+  const calendarUrl = `https://scheduler.default.com/22263/member/63847a9b-4d1b-4b3a-b79a-390ab20d4e9e?utm_source=pms_claude_guides&utm_medium=referral&utm_campaign=pms_claude_guides&utm_content=guide_setup_call`;
+  const navCalendarUrl = `https://scheduler.default.com/22263/member/63847a9b-4d1b-4b3a-b79a-390ab20d4e9e?utm_source=pms_claude_guides&utm_medium=referral&utm_campaign=pms_claude_guides&utm_content=guide_nav_setup_call`;
   const claudePromptUrl = `https://claude.ai/new?q=${encodeURIComponent(guide.claudePrompt)}`;
+  const demoUrl = `https://forms.default.com/824113?utm_source=pms_claude_guides&utm_medium=referral&utm_campaign=pms_claude_guides&utm_content=guide_footer_demo`;
+  const isSTR = guide.type === "str";
 
   return (
-    <div className="min-h-screen bg-[var(--bg-page-body)]">
+    <div className="min-h-screen bg-[#fafafa]">
       {/* Nav */}
       <nav className="border-b border-[var(--ct-neutral-200)] bg-white/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="/?utm_source=pms-guide&utm_medium=nav&utm_campaign=pms-claude-guide">
-            <svg className="h-5 text-[var(--ct-neutral-900)]" viewBox="0 0 450 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M167.322 98.4499H151.778V26.9487H185.664C203.85 26.9487 217.062 40.3163 217.062 58.8134V98.4499H201.518V58.6579C201.518 48.5545 194.368 40.9381 184.42 40.9381C174.628 40.9381 167.322 48.5545 167.322 58.6579V98.4499Z" fill="currentColor"/>
-              <path d="M105.719 100H105.408C84.4239 100 67.6367 83.5237 67.6367 62.6951C67.6367 41.8665 84.4239 25.3901 105.408 25.3901H105.719C126.858 25.3901 143.49 41.8665 143.49 62.6951C143.49 83.5237 126.858 100 105.719 100ZM105.408 84.4563H105.719C117.688 84.4563 127.325 74.5083 127.325 62.6951C127.325 50.7264 117.688 40.9339 105.719 40.9339H105.408C93.4393 40.9339 83.8022 50.571 83.8022 62.6951C83.8022 74.6638 93.4393 84.4563 105.408 84.4563Z" fill="currentColor"/>
-              <path d="M37.9667 100C16.8273 100 0.0400391 83.3682 0.0400391 62.6951C0.0400391 42.0219 16.6718 25.3901 37.8113 25.3901C47.7593 25.3901 57.241 29.2761 64.2356 36.2708L53.5105 47.1514C49.3137 42.7991 43.7179 40.623 37.8113 40.623C25.8426 40.623 16.2055 50.4155 16.2055 62.6951C16.2055 74.8192 25.9981 84.7672 37.9667 84.7672C43.8734 84.7672 49.4691 82.4356 53.5105 78.2388L64.2356 89.1194C57.241 95.9587 47.9147 100 37.9667 100Z" fill="currentColor"/>
-              <path d="M410.012 97.9255H425.555V53.7813C425.555 46.4757 430.996 41.0354 438.301 41.0354H449.959V26.4243H438.301C430.996 26.4243 425.555 20.984 425.555 13.6785V0H410.012V13.6785V53.7813V97.9255Z" fill="currentColor"/>
-              <path d="M383.381 16.0699H399.391V0H383.381V16.0699Z" fill="currentColor"/>
-              <path d="M383.381 98.4446H399.391V26.9435H383.381V98.4446Z" fill="currentColor"/>
-              <path d="M372.759 98.4499H339.029C320.843 98.4499 307.476 84.7714 307.476 66.2744V26.9487H323.019V66.7407C323.019 76.6887 330.325 84.1496 340.117 84.1496C350.065 84.1496 357.216 76.6887 357.216 66.7407V26.9487H372.759V98.4499Z" fill="currentColor"/>
-              <path fillRule="evenodd" clipRule="evenodd" d="M281.311 0V26.9425H261.104C241.364 26.9425 225.354 42.9525 225.354 62.693C225.354 82.4336 241.364 98.4436 261.104 98.4436H296.855V0H281.311ZM281.777 62.693C281.777 73.8845 272.762 83.2108 261.57 83.2108C250.534 83.2108 241.519 73.8845 241.519 62.693C241.519 51.3461 250.534 42.1753 261.57 42.1753C272.762 42.1753 281.777 51.3461 281.777 62.693Z" fill="currentColor"/>
-            </svg>
+          <a href="/?utm_source=pms-guide&utm_medium=nav&utm_campaign=pms-claude-guide" className="flex items-center gap-3">
+            <span className="text-[10px] font-medium text-[var(--ct-neutral-400)] uppercase tracking-widest">powered by</span>
+            <ConduitLogo className="h-[18px] text-[var(--ct-neutral-900)]" />
           </a>
-          <a href={calendarUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium bg-[var(--ct-neutral-800)] text-white px-4 py-2 rounded-md hover:bg-[var(--ct-neutral-700)] transition flex items-center gap-2">
+          <a href={navCalendarUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium bg-[var(--ct-neutral-800)] text-white px-4 py-2 rounded-xl hover:bg-[var(--ct-neutral-700)] transition flex items-center gap-2">
             <Calendar className="w-4 h-4" /> Book Setup Call
           </a>
         </div>
@@ -956,34 +986,39 @@ export default function GuidePage() {
             <h2 className="text-xl font-semibold text-[var(--ct-neutral-900)]">Need help getting this set up?</h2>
             <p className="text-sm text-[var(--ct-neutral-500)] mt-1">Book a free 15-minute session with Cole Rubin, founder of Conduit AI. I&apos;ll walk you through it.</p>
           </div>
-          <a href={calendarUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 bg-[var(--ct-blue-700)] text-white font-medium px-6 py-3 rounded-md hover:bg-[var(--ct-blue-800)] transition flex items-center gap-2">
+          <a href={calendarUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 bg-[var(--ct-blue-700)] text-white font-medium px-6 py-3 rounded-xl hover:bg-[var(--ct-blue-800)] transition flex items-center gap-2">
             Book Now <ArrowRight className="w-4 h-4" />
           </a>
         </div>
       </section>
 
       {/* Guide Content */}
-      <main className="max-w-4xl mx-auto px-6 py-12 space-y-8">
+      <main className="max-w-4xl mx-auto px-6 py-12 space-y-10">
         {/* Guide Header */}
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-2xl" style={{ backgroundColor: guide.color }}>
-            {guide.logo}
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--ct-neutral-900)]">Connect {guide.name} to Claude</h1>
-            <div className="flex items-center gap-3 mt-1">
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${guide.difficulty === "Easy" ? "bg-green-100 text-green-700" : guide.difficulty === "Medium" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>
-                {guide.difficulty}
-              </span>
-              <span className="text-xs text-[var(--ct-neutral-500)]">{guide.authMethod}</span>
-              <a href={guide.apiDocsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--ct-blue-700)] flex items-center gap-1 hover:underline">
-                API Docs <ExternalLink className="w-3 h-3" />
-              </a>
+        <div>
+          <div className="flex items-center gap-4 mb-4">
+            <Image src={guide.logoImage} alt={guide.name} width={56} height={56} className="rounded-xl shadow-sm border border-[var(--ct-neutral-100)]" unoptimized />
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--ct-neutral-900)]">Connect {guide.name} to Claude</h1>
+              <div className="flex items-center gap-3 mt-1">
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${guide.difficulty === "Easy" ? "bg-green-100 text-green-700" : guide.difficulty === "Medium" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>
+                  {guide.difficulty}
+                </span>
+                <span className="text-xs text-[var(--ct-neutral-500)]">{guide.authMethod}</span>
+                <a href={guide.apiDocsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--ct-blue-700)] flex items-center gap-1 hover:underline">
+                  API Docs <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             </div>
           </div>
+          <p className="text-sm text-[var(--ct-neutral-600)] leading-relaxed">{guide.description}</p>
         </div>
 
-        <p className="text-sm text-[var(--ct-neutral-600)] leading-relaxed">{guide.description}</p>
+        {/* Progress */}
+        <div className="flex items-center justify-between bg-white border border-[var(--ct-neutral-200)] rounded-xl px-5 py-4">
+          <span className="text-xs font-medium text-[var(--ct-neutral-500)]">4 steps to connect</span>
+          <StepIndicator current={0} total={4} />
+        </div>
 
         {/* Step 1: Install Claude */}
         <div className="space-y-4">
@@ -991,10 +1026,8 @@ export default function GuidePage() {
             <span className="w-7 h-7 rounded-full bg-[var(--ct-neutral-800)] text-white text-xs flex items-center justify-center font-bold">1</span>
             Install Claude
           </h2>
-          <div className="bg-white border border-[var(--ct-neutral-200)] rounded-lg p-4 space-y-3">
-            <p className="text-sm text-[var(--ct-neutral-600)]">Download Claude Desktop or install Claude Code CLI:</p>
-            <CodeBlock code={`# Option A: Claude Desktop\n# Download from https://claude.ai/download\n\n# Option B: Claude Code CLI\nnpm install -g @anthropic-ai/claude-code`} language="bash" />
-            <p className="text-sm text-[var(--ct-neutral-600)]">You&apos;ll also need Node.js 18+ and the MCP SDK:</p>
+          <div className="bg-white border border-[var(--ct-neutral-200)] rounded-xl p-5 space-y-3">
+            <p className="text-sm text-[var(--ct-neutral-600)]">Download Claude Desktop or install Claude Code CLI, then set up your project:</p>
             <CodeBlock code={`mkdir ${pmsSlug}-mcp && cd ${pmsSlug}-mcp\nnpm init -y\nnpm install @modelcontextprotocol/sdk zod`} language="bash" />
           </div>
         </div>
@@ -1005,12 +1038,12 @@ export default function GuidePage() {
             <span className="w-7 h-7 rounded-full bg-[var(--ct-neutral-800)] text-white text-xs flex items-center justify-center font-bold">2</span>
             Get Your {guide.name} API Credentials
           </h2>
-          <div className="bg-white border border-[var(--ct-neutral-200)] rounded-lg p-4">
+          <div className="bg-white border border-[var(--ct-neutral-200)] rounded-xl p-5">
             <ol className="list-decimal ml-5 space-y-2 text-sm text-[var(--ct-neutral-600)]">
               {guide.getCredentials.map((step, i) => <li key={i}>{step}</li>)}
             </ol>
-            <div className="mt-4 space-y-2">
-              <p className="text-xs font-medium text-[var(--ct-neutral-500)] uppercase tracking-wider">Environment variables you&apos;ll need:</p>
+            <div className="mt-4 pt-4 border-t border-[var(--ct-neutral-100)] space-y-2">
+              <p className="text-xs font-medium text-[var(--ct-neutral-500)] uppercase tracking-wider">Environment variables</p>
               {guide.envVars.map((v) => (
                 <div key={v.key} className="flex items-center gap-2 text-xs">
                   <code className="font-mono bg-[var(--ct-neutral-100)] px-1.5 py-0.5 rounded text-[var(--ct-neutral-700)]">{v.key}</code>
@@ -1027,7 +1060,7 @@ export default function GuidePage() {
             <span className="w-7 h-7 rounded-full bg-[var(--ct-neutral-800)] text-white text-xs flex items-center justify-center font-bold">3</span>
             Build the MCP Server
           </h2>
-          <p className="text-sm text-[var(--ct-neutral-600)]">Create an <code className="font-mono bg-[var(--ct-neutral-100)] px-1.5 py-0.5 rounded text-[var(--ct-neutral-700)]">index.js</code> file in your project folder with this code:</p>
+          <p className="text-sm text-[var(--ct-neutral-600)]">Create <code className="font-mono bg-[var(--ct-neutral-100)] px-1.5 py-0.5 rounded text-[var(--ct-neutral-700)]">index.js</code> with this code:</p>
           <CodeBlock code={guide.mcpServerCode} language="javascript" />
         </div>
 
@@ -1037,58 +1070,85 @@ export default function GuidePage() {
             <span className="w-7 h-7 rounded-full bg-[var(--ct-neutral-800)] text-white text-xs flex items-center justify-center font-bold">4</span>
             Connect to Claude
           </h2>
-          <p className="text-sm text-[var(--ct-neutral-600)]">Add this to your Claude Desktop config file (<code className="font-mono bg-[var(--ct-neutral-100)] px-1 py-0.5 rounded text-[var(--ct-neutral-700)]">~/Library/Application Support/Claude/claude_desktop_config.json</code>):</p>
+          <p className="text-sm text-[var(--ct-neutral-600)]">Add this to your Claude Desktop config (<code className="font-mono bg-[var(--ct-neutral-100)] px-1 py-0.5 rounded text-[var(--ct-neutral-700)]">~/Library/Application Support/Claude/claude_desktop_config.json</code>):</p>
           <CodeBlock code={guide.claudeConfig} language="json" />
-          <p className="text-sm text-[var(--ct-neutral-600)]">Restart Claude Desktop. You should see the {guide.name} tools available in the tools menu.</p>
+          <p className="text-sm text-[var(--ct-neutral-600)]">Restart Claude Desktop. You should see the {guide.name} tools in the tools menu.</p>
         </div>
 
-        {/* Key Endpoints */}
-        <Collapsible title={`Key ${guide.name} API Endpoints`}>
-          <div className="space-y-2">
+        {/* Key Endpoints — always visible */}
+        <div className="bg-white border border-[var(--ct-neutral-200)] rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-[var(--ct-neutral-100)]">
+            <h3 className="font-medium text-sm text-[var(--ct-neutral-900)]">Key {guide.name} API Endpoints</h3>
+          </div>
+          <div className="divide-y divide-[var(--ct-neutral-100)]">
             {guide.keyEndpoints.map((ep, i) => (
-              <div key={i} className="flex items-center gap-3 text-sm">
-                <span className={`font-mono text-xs px-1.5 py-0.5 rounded font-medium ${ep.method === "GET" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
+              <div key={i} className="flex items-center gap-3 px-5 py-3 text-sm">
+                <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${ep.method === "GET" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
                   {ep.method}
                 </span>
-                <code className="font-mono text-xs text-[var(--ct-neutral-600)]">{ep.path}</code>
-                <span className="text-xs text-[var(--ct-neutral-500)]">— {ep.desc}</span>
+                <code className="font-mono text-xs text-[var(--ct-neutral-600)] shrink-0">{ep.path}</code>
+                <span className="text-xs text-[var(--ct-neutral-400)]">{ep.desc}</span>
               </div>
             ))}
           </div>
-        </Collapsible>
+        </div>
 
         {/* Tips */}
-        <Collapsible title="Tips & Gotchas">
+        <div className="bg-white border border-[var(--ct-neutral-200)] rounded-xl p-5">
+          <h3 className="font-medium text-sm text-[var(--ct-neutral-900)] mb-3">Tips & Gotchas</h3>
           <ul className="list-disc ml-5 space-y-1.5 text-sm text-[var(--ct-neutral-600)]">
             {guide.tips.map((tip, i) => <li key={i}>{tip}</li>)}
           </ul>
-        </Collapsible>
+        </div>
       </main>
 
-      {/* CTA Footer — Claude Prompt */}
+      {/* CTA — Claude Prompt */}
       <section className="bg-[var(--ct-neutral-900)] text-white">
         <div className="max-w-4xl mx-auto px-6 py-12 text-center space-y-4">
           <Sparkles className="w-6 h-6 text-[var(--ct-blue-700)] mx-auto" />
           <h3 className="text-xl font-semibold">See what Claude thinks about {guide.name} + AI</h3>
           <p className="text-sm text-[var(--ct-neutral-400)] max-w-md mx-auto">
-            Ask Claude how AI can transform your {guide.name} operations — we&apos;ve pre-loaded the perfect prompt.
+            We&apos;ve pre-loaded a prompt about automating your {guide.name} operations with AI. Try it out.
           </p>
           <a
             href={claudePromptUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-[var(--ct-blue-700)] text-white font-medium px-6 py-3 rounded-md hover:bg-[var(--ct-blue-800)] transition"
+            className="inline-flex items-center gap-2 bg-[var(--ct-blue-700)] text-white font-medium px-6 py-3 rounded-xl hover:bg-[var(--ct-blue-800)] transition"
           >
             Try it in Claude <ArrowRight className="w-4 h-4" />
           </a>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer — Contextual CTA */}
       <footer className="border-t border-[var(--ct-neutral-200)] bg-white">
-        <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
-          <span className="text-xs text-[var(--ct-neutral-400)]">Conduit AI, Inc. {new Date().getFullYear()}</span>
-          <a href="/?utm_source=pms-guide&utm_medium=footer&utm_campaign=pms-claude-guide" className="text-xs text-[var(--ct-neutral-400)] hover:text-[var(--ct-neutral-700)]">All PMS Guides</a>
+        <div className="max-w-4xl mx-auto px-6 py-12">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex-1">
+              <p className="text-lg font-medium text-[var(--ct-neutral-900)] leading-snug">
+                {isSTR
+                  ? "Wonder what AI could do for your short-term rental?"
+                  : "Wonder what AI could do for your hotel?"
+                }
+              </p>
+              <p className="text-sm text-[var(--ct-neutral-500)] mt-1.5 max-w-md leading-relaxed">
+                Conduit automates guest messaging, operations, and upsells across {guide.name} and other major PMS platforms. See how it works for your properties.
+              </p>
+            </div>
+            <a
+              href={demoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 bg-[var(--ct-neutral-800)] text-white font-medium px-6 py-3 rounded-xl text-sm hover:bg-[var(--ct-neutral-700)] transition inline-flex items-center gap-2"
+            >
+              See a Live Demo <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+          <div className="mt-8 pt-6 border-t border-[var(--ct-neutral-200)] flex items-center justify-between">
+            <ConduitLogo className="h-[14px] text-[var(--ct-neutral-400)]" />
+            <a href="/?utm_source=pms-guide&utm_medium=footer&utm_campaign=pms-claude-guide" className="text-xs text-[var(--ct-neutral-400)] hover:text-[var(--ct-neutral-700)]">All PMS Guides</a>
+          </div>
         </div>
       </footer>
     </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, X, Sparkles, ArrowUpRight, Zap, Cable, Bot, ChevronLeft, ChevronRight, BarChart3, CalendarCheck, DollarSign, ClipboardList, BedDouble } from "lucide-react";
+import { getAttribution } from "@/lib/attribution";
 
 // ─── InView Hook ─────────────────────────────────────────────────────────────
 
@@ -106,7 +107,7 @@ function LeadModal({ pms, onClose }: { pms: typeof PMS_LIST[0]; onClose: () => v
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    try { await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, pms: pms.slug }) }); } catch {}
+    try { await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, pms: pms.slug, attribution: getAttribution() }) }); } catch {}
     router.push(`/guides/${pms.slug}?utm_source=pms_claude_guides&utm_medium=referral&utm_campaign=pms_claude_guides&utm_content=${pms.slug}_guide`);
   };
   return (
@@ -144,7 +145,7 @@ function RequestModal({ onClose }: { onClose: () => void }) {
   const [done, setDone] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try { await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ firstName: form.firstName, lastName: form.lastName, email: form.email, pms: form.pmsName }) }); } catch {}
+    try { await fetch("/api/leads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ firstName: form.firstName, lastName: form.lastName, email: form.email, pms: form.pmsName, attribution: getAttribution() }) }); } catch {}
     setDone(true);
   };
   return (
